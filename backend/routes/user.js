@@ -10,15 +10,15 @@ const signupBody = zod.object({
     username: zod.string().email(),
     firstName: zod.string(),
     lastName: zod.string(),
-    password: zod.number(),
+    password: zod.string(),
 })
 
 userRouter.post('/signup', async (req,res) => {
-    const { success } = signupBody.safeParse(req.body)
+    const { success } = signupBody.safeParse(req.body);
 
     if (!success) {
         return res.status(411).json({
-            message: "Email already taken / Incorrect inputs"
+            message: "Email already taken / Incorrect inputs",
         })
     }
 
@@ -28,7 +28,7 @@ userRouter.post('/signup', async (req,res) => {
     
     if (existingUser) {
         return res.status(411).json({
-            message: "Email already taken / Incorrect inputs"
+            message: "Email already taken / Incorrect inputs",
         })
     }
 
@@ -39,7 +39,7 @@ userRouter.post('/signup', async (req,res) => {
         password: req.body.password,
     })
 
-    const userId = user._id;
+    const userId = user.id;
 
     await Account.create({
         userId,
@@ -58,7 +58,7 @@ userRouter.post('/signup', async (req,res) => {
 
 const signinBody = zod.object({
     username: zod.string().email(),
-    password: zod.number(),
+    password: zod.string(),
 })
 
 userRouter.post('/signin', async (req,res) => {
@@ -77,7 +77,7 @@ userRouter.post('/signin', async (req,res) => {
 
     if (user) {
         const token = jwt.sign({
-            userId: user._id
+            userId: user.id
         }, JWT_SECRET)
 
         return res.json({

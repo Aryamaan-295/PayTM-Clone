@@ -9,8 +9,13 @@ accountRouter.get('/balance', authMiddleware, async (req, res) => {
         userId: req.userId,
     });
 
+    const user = await User.findOne({
+        _id: req.userId,
+    })
+
     res.json({
-        account: account,
+        balance: account.balance,
+        firstName: user.firstName,
     })
 })
 
