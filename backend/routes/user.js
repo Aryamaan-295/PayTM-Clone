@@ -70,14 +70,16 @@ userRouter.post('/signin', async (req,res) => {
         })
     }
 
-    const user = User.findOne({
+    const user = await User.findOne({
         username: req.body.username,
         password: req.body.password,
     });
 
+    const userId = user.id;
+
     if (user) {
         const token = jwt.sign({
-            userId: user.id
+            userId: userId
         }, JWT_SECRET)
 
         return res.json({
@@ -105,15 +107,17 @@ userRouter.put('/', authMiddleware, async (req,res) => {
         })
     }
 
-    await User.updateOne({ _id: req.userId }, req.body)
+    await User.updateOne({ id: req.userId }, req.body)
 
     res.json({
         message: "Updated successfully",
     })
 })
 
-userRouter.get('/bulk', async (req, res) => {
+userRouter.get('/bulk', authMiddleware, async (req, res) => {
     const filter = req.query.filter || "";
+
+    const userId = req.userId;
 
     const users = await User.find({ $or: [
         {
@@ -128,13 +132,29 @@ userRouter.get('/bulk', async (req, res) => {
         }
     ]})
 
+    if (users.findIndex((user) => user._id == userId) > -1) {
+        users.splice(users.findIndex((user) => user._id == userId),1)
+    }
+
     res.json({
         users: users.map(user => ({
             username: user.username,
             firstName: user.firstName,
             lastName: user.lastName,
-            _id: user._id,
+            id: user.id,
         }))
+    })
+})
+
+userRouter.get('/user', async (req, res) => {
+    const filter = req.query.filter;
+
+    const user = await User.find({
+        _id: filter
+    })
+
+    res.json({
+        user: user[0],
     })
 })
 
